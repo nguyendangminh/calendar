@@ -25,9 +25,9 @@ func TestNewMoon(t *testing.T) {
 		1533: 2460291.480190389,
 	}
 	for k, v := range tcs {
-		r := NewMoon(k)
+		r := newMoon(k)
 		if r != v {
-			t.Errorf("NewMoon(%d)=%f but expected %f", k, r, v)
+			t.Errorf("newMoon(%d)=%f but expected %f", k, r, v)
 		}
 	}
 }
@@ -44,9 +44,9 @@ func TestGetNewMoonDay(t *testing.T) {
 		{K: 1533, Timezone: 7, Expected: 2460292},
 	}
 	for _, tc := range tcs {
-		r := GetNewMoonDay(tc.K, tc.Timezone)
+		r := getNewMoonDay(tc.K, tc.Timezone)
 		if r != tc.Expected {
-			t.Errorf("GetNewMoonDay(%d, %d)=%d but expected %d", tc.K, tc.Timezone, r, tc.Expected)
+			t.Errorf("getNewMoonDay(%d, %d)=%d but expected %d", tc.K, tc.Timezone, r, tc.Expected)
 		}
 	}
 }
@@ -61,9 +61,9 @@ func TestSunLongitude(t *testing.T) {
 		{Jdn: 100000, Expected: -3.362306698647444},
 	}
 	for _, tc := range tcs {
-		r := SunLongitude(tc.Jdn)
+		r := sunLongitude(tc.Jdn)
 		if r != tc.Expected {
-			t.Errorf("SunLongtitude(%f)=%f but expected %f", tc.Jdn, r, tc.Expected)
+			t.Errorf("sunLongtitude(%f)=%f but expected %f", tc.Jdn, r, tc.Expected)
 		}
 	}
 }
@@ -79,9 +79,9 @@ func TestGetSunLongitude(t *testing.T) {
 		{DayNumber: 12, Timezone: 7, Expected: -3},
 	}
 	for _, tc := range tcs {
-		r := GetSunLongitude(tc.DayNumber, tc.Timezone)
+		r := getSunLongitude(tc.DayNumber, tc.Timezone)
 		if r != tc.Expected {
-			t.Errorf("GetSunLongitude(%d, %d)=%d but expected %d", tc.DayNumber, tc.Timezone, r, tc.Expected)
+			t.Errorf("getSunLongitude(%d, %d)=%d but expected %d", tc.DayNumber, tc.Timezone, r, tc.Expected)
 		}
 	}
 }
@@ -98,9 +98,9 @@ func TestGetLunarMonth11(t *testing.T) {
 		{YY: 2000, Timezone: 8, Expected: 2451875},
 	}
 	for _, tc := range tcs {
-		r := GetLunarMonth11(tc.YY, tc.Timezone)
+		r := getLunarMonth11(tc.YY, tc.Timezone)
 		if r != tc.Expected {
-			t.Errorf("GetLunarMonth11(%d, %d)=%d but expected %d", tc.YY, tc.Timezone, r, tc.Expected)
+			t.Errorf("getLunarMonth11(%d, %d)=%d but expected %d", tc.YY, tc.Timezone, r, tc.Expected)
 		}
 	}
 }
@@ -117,9 +117,9 @@ func TestGetLeapMonthOffset(t *testing.T) {
 		{A11: 31, Timezone: 7, Expected: 11},
 	}
 	for _, tc := range tcs {
-		r := GetLeapMonthOffset(tc.A11, tc.Timezone)
+		r := getLeapMonthOffset(tc.A11, tc.Timezone)
 		if r != tc.Expected {
-			t.Errorf("GetLeapMonthOffset(%d, %d)=%d but expected %d", tc.A11, tc.Timezone, r, tc.Expected)
+			t.Errorf("getLeapMonthOffset(%d, %d)=%d but expected %d", tc.A11, tc.Timezone, r, tc.Expected)
 		}
 	}
 }

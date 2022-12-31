@@ -1,7 +1,6 @@
 package calendar
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -36,11 +35,11 @@ func jdToDate(jd int) (dd, mm, yy int) {
 	return dd, mm, yy
 }
 
-// NewMoon(k int): Compute the time of the k-th new moon after the new moon of 1/1/1900 13:52 UCT
+// newMoon(k int): Compute the time of the k-th new moon after the new moon of 1/1/1900 13:52 UCT
 // (measured as the number of days since 1/1/4713 BC noon UCT, e.g., 2451545.125 is 1/1/2000 15:00 UTC.
 // Returns a floating number, e.g., 2415079.9758617813 for k=2 or 2414961.935157746 for k=-2.
 // Time in Julian centuries from 1900 January 0.5
-func NewMoon(k int) float64 {
+func newMoon(k int) float64 {
 	kf := float64(k)
 
 	T := kf / 1236.85
@@ -82,13 +81,13 @@ func NewMoon(k int) float64 {
 
 // Compute the day of the k-th new moon in the given time zone.
 // The time zone if the time difference between local time and UTC: 7.0 for UTC+7:00.
-func GetNewMoonDay(k, timezone int) int {
-	return int(NewMoon(k) + 0.5 + (float64(timezone) / 24.))
+func getNewMoonDay(k, timezone int) int {
+	return int(newMoon(k) + 0.5 + (float64(timezone) / 24.))
 }
 
 // Compute the longitude of the sun at any time.
 // Parameter: floating number jdn, the number of days since 1/1/4713 BC noon.
-func SunLongitude(jdn float64) float64 {
+func sunLongitude(jdn float64) float64 {
 	T := (jdn - 2451545.0) / 36525.
 
 	// Time in Julian centuries
@@ -114,35 +113,34 @@ func SunLongitude(jdn float64) float64 {
 // The function returns a number between 0 and 11.
 // From the day after March equinox and the 1st major term after March equinox, 0 is returned.
 // After that, return 1, 2, 3 ...
-func GetSunLongitude(dayNumber, timezone int) int {
-	return int(SunLongitude(float64(dayNumber)-0.5-float64(timezone)/24.) / math.Pi * 6)
+func getSunLongitude(dayNumber, timezone int) int {
+	return int(sunLongitude(float64(dayNumber)-0.5-float64(timezone)/24.) / math.Pi * 6)
 }
 
 // Find the day that starts the luner month 11 of the given year for the given time zone.
-func GetLunarMonth11(yy, timezone int) int {
+func getLunarMonth11(yy, timezone int) int {
 	off := float64(jdFromDate(31, 12, yy)) - 2415021.076998695
 	k := int(off / 29.530588853)
-	nm := GetNewMoonDay(k, timezone)
-	sunLong := GetSunLongitude(nm, timezone)
-	fmt.Println(nm)
+	nm := getNewMoonDay(k, timezone)
+	sunLong := getSunLongitude(nm, timezone)
 	// sun longitude at local midnight
 	if sunLong >= 9 {
-		nm = GetNewMoonDay(k-1, timezone)
+		nm = getNewMoonDay(k-1, timezone)
 	}
 
 	return nm
 }
 
 // Find the index of the leap month after the month starting on the day a11.
-func GetLeapMonthOffset(a11, timezone int) int {
+func getLeapMonthOffset(a11, timezone int) int {
 	k := int((float64(a11)-2415021.076998695)/29.530588853 + 0.5)
 	last := 0
 	i := 1 // start with month following lunar month 11
-	arc := GetSunLongitude(GetNewMoonDay(k+i, timezone), timezone)
+	arc := getSunLongitude(getNewMoonDay(k+i, timezone), timezone)
 	for {
 		last = arc
 		i += 1
-		arc = GetSunLongitude(GetNewMoonDay(k+i, timezone), timezone)
+		arc = getSunLongitude(getNewMoonDay(k+i, timezone), timezone)
 		if !(arc != last && i < 14) {
 			break
 		}
@@ -150,29 +148,29 @@ func GetLeapMonthOffset(a11, timezone int) int {
 	return i - 1
 }
 
-// S2L Convert solar date dd/mm/yyyy to the corresponding lunar date.
+// S2L converts solar date dd/mm/yyyy to the corresponding lunar date.
 func S2L(dd, mm, yy, timezone int) (lunarDay, lunarMonth, lunarYear, lunarLeap int) {
 	dayNumber := jdFromDate(dd, mm, yy)
 	k := int((float64(dayNumber) - 2415021.076998695) / 29.530588853)
-	monthStart := GetNewMoonDay(k+1, timezone)
+	monthStart := getNewMoonDay(k+1, timezone)
 	if monthStart > dayNumber {
-		monthStart = GetNewMoonDay(k, timezone)
+		monthStart = getNewMoonDay(k, timezone)
 	}
-	a11 := GetLunarMonth11(yy, timezone)
+	a11 := getLunarMonth11(yy, timezone)
 	b11 := a11
 	if a11 >= monthStart {
 		lunarYear = yy
-		a11 = GetLunarMonth11(yy-1, timezone)
+		a11 = getLunarMonth11(yy-1, timezone)
 	} else {
 		lunarYear = yy + 1
-		b11 = GetLunarMonth11(yy+1, timezone)
+		b11 = getLunarMonth11(yy+1, timezone)
 	}
 	lunarDay = dayNumber - monthStart + 1
 	diff := int(float64(monthStart-a11) / 29.)
 	lunarLeap = 0
 	lunarMonth = diff + 11
 	if b11-a11 > 365 {
-		leapMonthDiff := GetLeapMonthOffset(a11, timezone)
+		leapMonthDiff := getLeapMonthOffset(a11, timezone)
 		if diff >= leapMonthDiff {
 			lunarMonth = diff + 10
 		}
@@ -193,11 +191,11 @@ func S2L(dd, mm, yy, timezone int) (lunarDay, lunarMonth, lunarYear, lunarLeap i
 func L2S(lunarD, lunarM, lunarY, lunarLeap, timezone int) (dd, mm, yy int) {
 	var a11, b11 int
 	if lunarM < 11 {
-		a11 = GetLunarMonth11(lunarY-1, timezone)
-		b11 = GetLunarMonth11(lunarY, timezone)
+		a11 = getLunarMonth11(lunarY-1, timezone)
+		b11 = getLunarMonth11(lunarY, timezone)
 	} else {
-		a11 = GetLunarMonth11(lunarY, timezone)
-		b11 = GetLunarMonth11(lunarY+1, timezone)
+		a11 = getLunarMonth11(lunarY, timezone)
+		b11 = getLunarMonth11(lunarY+1, timezone)
 	}
 	k := int(0.5 + (float64(a11)-2415021.076998695)/29.530588853)
 	off := lunarM - 11
@@ -205,7 +203,7 @@ func L2S(lunarD, lunarM, lunarY, lunarLeap, timezone int) (dd, mm, yy int) {
 		off += 12
 	}
 	if b11-a11 > 365 {
-		leapOff := GetLeapMonthOffset(a11, timezone)
+		leapOff := getLeapMonthOffset(a11, timezone)
 		leapM := leapOff - 2
 		if leapM < 0 {
 			leapM += 12
@@ -217,6 +215,6 @@ func L2S(lunarD, lunarM, lunarY, lunarLeap, timezone int) (dd, mm, yy int) {
 			off += 1
 		}
 	}
-	monthStart := GetNewMoonDay(k+off, timezone)
+	monthStart := getNewMoonDay(k+off, timezone)
 	return jdToDate(monthStart + lunarD - 1)
 }
